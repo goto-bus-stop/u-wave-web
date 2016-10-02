@@ -7,6 +7,9 @@ import {
   inputMessage
 } from '../actions/ChatActionCreators';
 import {
+  deleteChatMessage
+} from '../actions/ModerationActionCreators';
+import {
   motdSelector,
   messagesSelector,
   markupCompilerOptionsSelector,
@@ -32,7 +35,8 @@ const mapStateToProps = createStructuredSelector({
 });
 
 const mapDispatchToProps = dispatch => bindActionCreators({
-  onSend: inputMessage
+  onSend: inputMessage,
+  onDeleteMessage: deleteChatMessage
 }, dispatch);
 
 const ChatContainer = ({

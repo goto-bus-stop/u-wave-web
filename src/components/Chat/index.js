@@ -8,6 +8,7 @@ export default class Chat extends Component {
   static propTypes = {
     messages: PropTypes.array,
     motd: PropTypes.array,
+    onDeleteMessage: PropTypes.func,
     compileOptions: PropTypes.shape({
       availableEmoji: PropTypes.array,
       emojiImages: PropTypes.object
@@ -69,11 +70,15 @@ export default class Chat extends Component {
         />
       );
     }
+    const onDelete = () => {
+      this.props.onDeleteMessage(msg._id);
+    };
     return (
       <Message
         key={msg._id}
         alternate={alternate}
         compileOptions={this.props.compileOptions}
+        onDelete={onDelete}
         {...msg}
       />
     );

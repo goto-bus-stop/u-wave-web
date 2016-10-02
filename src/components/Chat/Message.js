@@ -6,11 +6,11 @@ import withProps from 'recompose/withProps';
 import userCardable from '../../utils/userCardable';
 import Avatar from '../Avatar';
 import Username from '../Username';
-
 import Loader from '../Loader';
-import compile from './Markup/compile';
 
-const timeFormatOptions = { hour: 'numeric', minute: 'numeric' };
+import compile from './Markup/compile';
+import DeleteButton from './DeleteButton';
+import MessageTimestamp from './MessageTimestamp';
 
 const enhance = compose(
   userCardable(),
@@ -31,6 +31,7 @@ const Message = ({
   isMention,
   timestamp,
   compileOptions,
+  onDelete,
   onUsernameClick
 }) => {
   let avatar;
@@ -63,12 +64,10 @@ const Message = ({
     <div className={className}>
       {avatar}
       <div className="ChatMessage-content">
-        <time
-          className="ChatMessage-timestamp"
-          dateTime={date.toISOString()}
-        >
-          {date.toLocaleTimeString([], timeFormatOptions)}
-        </time>
+        <div className="ChatMessage-hover">
+          {onDelete && <DeleteButton onDelete={onDelete} />}
+          <MessageTimestamp date={date} />
+        </div>
         <button
           className="ChatMessage-username ChatMessage-cardable"
           onClick={onUsernameClick}
@@ -89,6 +88,7 @@ Message.propTypes = {
   inFlight: React.PropTypes.bool,
   timestamp: React.PropTypes.number.isRequired,
   isMention: React.PropTypes.bool.isRequired,
+  onDelete: React.PropTypes.func,
   compileOptions: React.PropTypes.shape({
     availableEmoji: React.PropTypes.array,
     emojiImages: React.PropTypes.object
