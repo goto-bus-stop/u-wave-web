@@ -22,6 +22,7 @@ import {
 } from '../constants/actionTypes/chat';
 import { put } from './RequestActionCreators';
 import { execute } from '../utils/ChatCommands';
+import { notify } from '../utils/desktopNotifications';
 import {
   muteTimeoutsSelector,
   mutedUserIDsSelector,
@@ -128,6 +129,23 @@ function isMuted(state, userID) {
   return mutedUserIDsSelector(state).indexOf(userID) !== -1;
 }
 
+function isDocumentHidden() {
+  return typeof document !== 'undefined' && document && document.hidden;
+}
+
+function shouldNotify(settings, mention) {
+  return mention && settings.mentionSound && isDocumentHidden();
+}
+
+function showNotification(user, message) {
+  notify(user.username, {
+    timeout: 5000,
+    icon: user.avatar || `https://sigil.cupcake.io/uwave-${user._id}`,
+    tag: 'chatmessage',
+    body: message.text
+  });
+}
+
 export function receive(message) {
   return (dispatch, getState) => {
     const settings = settingsSelector(getState());
@@ -160,8 +178,9 @@ export function receive(message) {
       }
     });
 
-    if (isMention && settings.mentionSound) {
+    if (shouldNotify(settings, isMention)) {
       playMentionSound();
+      showNotification(sender, message);
     }
   };
 }
