@@ -54,6 +54,10 @@ class SettingsPanel extends React.Component {
     this.props.onSettingChange('mentionSound', value);
   };
 
+  handleChatDesktopNotificationsChange = (e, value) => {
+    this.props.onSettingChange('chatDesktopNotifications', value);
+  };
+
   handleLanguageChange = (e, index, value) => {
     this.props.onChangeLanguage(value);
   };
@@ -92,6 +96,11 @@ class SettingsPanel extends React.Component {
         label={t('settings.mentionSound')}
         defaultToggled={settings.mentionSound}
         onToggle={this.handleMentionSoundChange}
+      />,
+      <Toggle
+        label={t('settings.chatDesktopNotifications')}
+        defaultToggled={settings.chatDesktopNotifications}
+        onToggle={this.handleChatDesktopNotificationsChange}
       />,
       <LabeledControl id="uw-setting-language" label={t('settings.language')}>
         <LanguagePicker

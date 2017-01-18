@@ -133,8 +133,12 @@ function isDocumentHidden() {
   return typeof document !== 'undefined' && document && document.hidden;
 }
 
-function shouldNotify(settings, mention) {
-  return mention && settings.mentionSound && isDocumentHidden();
+function shouldPlayMentionSound(settings) {
+  return settings.mentionSound;
+}
+
+function shouldShowNotification(settings) {
+  return settings.chatDesktopNotifications;
 }
 
 function showNotification(user, message) {
@@ -146,9 +150,24 @@ function showNotification(user, message) {
   });
 }
 
+function mentionNotification(sender, message) {
+  return (dispatch, getState) => {
+    if (!isDocumentHidden()) {
+      return;
+    }
+
+    const settings = settingsSelector(getState());
+    if (shouldPlayMentionSound(settings)) {
+      playMentionSound();
+    }
+    if (shouldShowNotification(settings)) {
+      showNotification(sender, message);
+    }
+  };
+}
+
 export function receive(message) {
   return (dispatch, getState) => {
-    const settings = settingsSelector(getState());
     const currentUser = currentUserSelector(getState());
     const users = userListSelector(getState());
     const sender = find(users, user => user._id === message.userID);
@@ -178,9 +197,8 @@ export function receive(message) {
       }
     });
 
-    if (shouldNotify(settings, isMention)) {
-      playMentionSound();
-      showNotification(sender, message);
+    if (isMention) {
+      dispatch(mentionNotification(sender, message));
     }
   };
 }
