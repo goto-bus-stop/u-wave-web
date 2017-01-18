@@ -28,6 +28,7 @@ import { setUsers } from './UserActionCreators';
 import { setVoteStats } from './VoteActionCreators';
 import { setWaitList } from './WaitlistActionCreators';
 import { currentUserSelector, tokenSelector } from '../selectors/userSelectors';
+import { requestPermission } from '../utils/desktopNotifications';
 
 const debug = createDebug('uwave:actions:login');
 
@@ -46,6 +47,11 @@ export function loginComplete({ jwt, user }) {
       payload: { jwt, user }
     });
     dispatch(closeLoginDialog());
+
+    // Request notifications permissions for chat mention notifications early.
+    // We don't care what the result is in this case, really.
+    const noop = () => {};
+    requestPermission().then(noop, noop);
   };
 }
 
