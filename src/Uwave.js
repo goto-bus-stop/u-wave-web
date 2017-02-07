@@ -13,7 +13,8 @@ import { initState, socketConnect, setJWT } from './actions/LoginActionCreators'
 import * as api from './api';
 
 // Register default chat commands.
-import './utils/commands';
+import ChatCommands from './utils/ChatCommands';
+import addDefaultChatCommands from './utils/commands';
 
 // A Material-UI dependency, removes the delay from tap events on some mobile
 // devices. üWave currently isn't compatible with mobile yet, but material-ui
@@ -34,6 +35,9 @@ export default class Uwave {
     Object.assign(this, api.constants);
     Object.assign(this, api.components);
     Object.assign(this, api.actions);
+
+    this.chatCommands = new ChatCommands();
+    addDefaultChatCommands(this.chatCommands);
 
     if (module.hot) {
       const HotContainer = require('react-hot-loader').AppContainer;
@@ -81,7 +85,7 @@ export default class Uwave {
   build() {
     this.store = configureStore(
       { config: this.options },
-      { mediaSources: this.sources }
+      { mediaSources: this.sources, uw: this }
     );
 
     if (this.jwt) {

@@ -11,6 +11,7 @@ import {
   SEND_MESSAGE,
   RECEIVE_MESSAGE,
 
+  CHAT_COMMAND,
   LOG,
 
   REMOVE_MESSAGE,
@@ -21,7 +22,6 @@ import {
   UNMUTE_USER
 } from '../constants/actionTypes/chat';
 import { put } from './RequestActionCreators';
-import { execute } from '../utils/ChatCommands';
 import {
   muteTimeoutsSelector,
   mutedUserIDsSelector,
@@ -96,15 +96,19 @@ export function sendChat(text) {
   };
 }
 
+export function executeChatCommand(name, args) {
+  return {
+    type: CHAT_COMMAND,
+    payload: { name, args }
+  };
+}
+
 export function inputMessage(text) {
-  return (dispatch, getState) => {
+  return (dispatch) => {
     if (text[0] === '/') {
-      const [ command, ...params ] = splitargs(text.slice(1));
+      const [ command, ...args ] = splitargs(text.slice(1));
       if (command) {
-        const result = execute(getState(), command, params);
-        if (result) {
-          dispatch(result);
-        }
+        dispatch(executeChatCommand(command, args));
         return;
       }
     }

@@ -6,6 +6,7 @@ export const RECEIVE_MESSAGE = 'chat/RECEIVE_MESSAGE';
 export const SEND_MESSAGE = 'chat/SEND_MESSAGE';
 
 export const NOTIFY = 'chat/NOTIFY';
+export const CHAT_COMMAND = 'chat/CHAT_COMMAND';
 export const LOG = 'chat/LOG';
 
 export const REMOVE_MESSAGE = 'chat/REMOVE_MESSAGE';

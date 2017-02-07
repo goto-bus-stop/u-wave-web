@@ -1,4 +1,4 @@
-import { register, findUser } from '../ChatCommands';
+import { findUser } from '../ChatCommands';
 import { log } from '../../actions/ChatActionCreators';
 
 import {
@@ -18,25 +18,28 @@ const roleNames = {
   manager: 3,
   admin: 4
 };
-register(
-  'userrole',
-  'Assign a different role to a user. Syntax: "/userrole username role"',
-  {
-    guard: isManagerSelector,
-    action: (username, role) => (dispatch, getState) => {
-      if (!username) {
-        return dispatch(log('Provide a user to promote or demote.'));
+
+export default function staffCommands(ctx) {
+  ctx.register(
+    'userrole',
+    'Assign a different role to a user. Syntax: "/userrole username role"',
+    {
+      guard: isManagerSelector,
+      action: (username, role) => (dispatch, getState) => {
+        if (!username) {
+          return dispatch(log('Provide a user to promote or demote.'));
+        }
+        if (!(role in roleNames)) {
+          return dispatch(log(
+            `Provide a role to promote ${username} to. [user, special, moderator, manager, admin]`
+          ));
+        }
+        const user = findUser(
+          userListSelector(getState()),
+          username
+        );
+        return dispatch(setUserRole(user, roleNames[role]));
       }
-      if (!(role in roleNames)) {
-        return dispatch(log(
-          `Provide a role to promote ${username} to. [user, special, moderator, manager, admin]`
-        ));
-      }
-      const user = findUser(
-        userListSelector(getState()),
-        username
-      );
-      return dispatch(setUserRole(user, roleNames[role]));
     }
-  }
-);
+  );
+}

@@ -15,6 +15,8 @@ export default function createUwaveStore(initialState = {}, options = {}) {
   const isTesting = process.env.NODE_ENV === 'testing';
   const enableLogging = process.env.NODE_ENV !== 'production' && !isTesting;
 
+  const { uw } = options;
+
   const middleware = [
     // Redux-Thunk allows dispatching a function to the store instead of an
     // action object. These functions can then dispatch action objects as they
@@ -26,6 +28,8 @@ export default function createUwaveStore(initialState = {}, options = {}) {
     // then be executed and handled as HTTP requests by the middleware.
     webApiRequest(),
     !isTesting && webApiSocket(),
+    // Attach chat commands handler.
+    uw.chatCommands.middleware(),
     // Redux-Logger logs state changes to the console, including the
     // Before-state, the Action object, and the After-state. Invaluable for
     // debugging :)
