@@ -3,6 +3,7 @@ import chatCommands from './chat';
 import helpCommands from './help';
 import mutesCommands from './mutes';
 import staffCommands from './staff';
+import userCommands from './user';
 import waitlistCommands from './waitlist';
 
 export default function defaultCommands(ctx) {
@@ -11,5 +12,6 @@ export default function defaultCommands(ctx) {
   helpCommands(ctx);
   mutesCommands(ctx);
   staffCommands(ctx);
+  userCommands(ctx);
   waitlistCommands(ctx);
 }
