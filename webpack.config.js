@@ -156,6 +156,7 @@ module.exports = {
   plugins,
   module: {
     rules: [
+      { include: path.join(context, 'app.js'), use: 'flat-loader' },
       {
         test: /\.mp3$/,
         use: [
