@@ -3,71 +3,50 @@ import * as defaultFs from 'fs';
 import trumpet from 'trumpet';
 import router from 'router';
 import serveStatic from 'serve-static';
+import etag from 'etag';
+import concat from 'concat-stream';
+import fresh from 'fresh';
 
-function injectConfig(config, { pluginsScript, pluginsStyle } = {}) {
+function injectConfig(config) {
   const transform = trumpet();
   transform.select('#u-wave-config')
     .createWriteStream()
     .end(JSON.stringify(config));
-  if (pluginsScript) {
-    transform.select('#u-wave-plugins').setAttribute('src', pluginsScript);
-  }
-  if (pluginsStyle) {
-    transform.select('#u-wave-plugins-style').setAttribute('href', pluginsStyle);
-  }
   return transform;
+}
+
+function sendString(req, res, contents) {
+  res.setHeader('etag', etag(contents));
+
+  if (fresh(req.headers, { etag: res.getHeader('etag') })) {
+    res.statusCode = 304;
+    res.end();
+  } else {
+    res.statusCode = 200;
+    res.setHeader('content-type', 'text/html');
+    res.setHeader('content-length', contents.length);
+    res.end(contents);
+  }
 }
 
 export default function uwaveWebClient(uw, options = {}) {
   const {
     basePath = path.join(__dirname, '../public'),
-    pluginsScript = null,
-    pluginsScriptFile = null,
-    pluginsStyle = null,
-    pluginsStyleFile = null,
     fs = defaultFs, // Should only be used by the dev server.
     ...clientOptions
   } = options;
 
-  const pluginsScriptName = 'custom.js';
-  const pluginsStyleName = 'custom.css';
   const clientRouter = router();
 
-  if (pluginsScriptFile) {
-    clientRouter.get(`/${pluginsScriptName}`, (req, res) => {
-      res.writeHeader(200, { 'content-type': 'application/javascript' });
-      fs.createReadStream(pluginsScriptFile).pipe(res);
-    });
-  } else if (pluginsScript) {
-    clientRouter.get(`/${pluginsScriptName}`, (req, res) => {
-      res.writeHeader(200, { 'content-type': 'application/javascript' });
-      res.end(pluginsScript);
-    });
-  }
-
-  if (pluginsStyleFile) {
-    clientRouter.get(`/${pluginsStyleName}`, (req, res) => {
-      res.writeHeader(200, { 'content-type': 'text/css' });
-      fs.createReadStream(pluginsStyleFile).pipe(res);
-    });
-  } else if (pluginsStyle) {
-    clientRouter.get(`/${pluginsStyleName}`, (req, res) => {
-      res.writeHeader(200, { 'content-type': 'text/css' });
-      res.end(pluginsStyle);
-    });
-  }
-
+  const indexPath = path.join(basePath, 'index.html');
   return clientRouter
-    .get('/', (req, res) => {
-      fs.createReadStream(path.join(basePath, 'index.html'), 'utf8')
-        .pipe(injectConfig(
-          clientOptions,
-          {
-            pluginsScript: (pluginsScriptFile || pluginsScript) ? pluginsScriptName : null,
-            pluginsStyle: (pluginsStyleFile || pluginsStyle) ? pluginsStyleName : null
-          }
-        ))
-        .pipe(res);
+    .get('/', (req, res, next) => {
+      res.setHeader('cache-control', 'public, max-age=0');
+
+      fs.createReadStream(indexPath, 'utf8')
+        .pipe(injectConfig(clientOptions))
+        .on('error', next)
+        .pipe(concat(sendString.bind(null, req, res)));
     })
     .use(serveStatic(basePath));
 }
