@@ -2,6 +2,7 @@
 
 require('loud-rejection/register');
 const gulp = require('gulp');
+const path = require('path');
 const env = require('gulp-util').env;
 const log = require('gulp-util').log;
 const explain = require('explain-error');
@@ -27,6 +28,11 @@ function tryRequire(file, message) {
   }
 }
 
+function maybeRequire(file) {
+  try { return require(file); }
+  catch (err) {}
+}
+
 gulp.task('serve', () => {
   const port = env.port || config.port;
   const watch = env.watch || false;
@@ -37,6 +43,7 @@ gulp.task('serve', () => {
   const createWebApi = tryRequire('u-wave-api-v1',
     'Could not find the u-wave API module. Did you run `npm install u-wave-api-v1`?'
   );
+  const uwaveEmoji = maybeRequire('u-wave-emoji');
 
   const createWebClient = require('../src/middleware').default;
 
@@ -58,13 +65,19 @@ gulp.task('serve', () => {
 
   const apiUrl = '/v1';
 
-  app
-    .use(apiUrl, createWebApi(uw, {
-      recaptcha: { secret: recaptchaTestKeys.secret },
-      server,
-      secret: new Buffer('none', 'utf8')
-    }))
-    .use('/assets/emoji/', emojione.middleware());
+  app.use(apiUrl, createWebApi(uw, {
+    recaptcha: { secret: recaptchaTestKeys.secret },
+    server,
+    secret: new Buffer('none', 'utf8')
+  }))
+
+  if (uwaveEmoji) {
+    uw.use(uwaveEmoji({
+      path: path.join(__dirname, 'custom-emoji')
+    }));
+    uw.emoji.useEmojiSet(emojione);
+    app.use('/assets/emoji', uw.emoji);
+  }
 
   if (watch) {
     Object.keys(wpConfig.entry).forEach((chunk) => {
@@ -99,7 +112,6 @@ gulp.task('serve', () => {
 
     app.use(createWebClient(uw, {
       apiUrl,
-      emoji: emojione.emoji,
       publicPath: '/',
       // Point u-wave-web middleware to the virtual webpack filesystem.
       fs: dev.fileSystem,
@@ -114,7 +126,6 @@ gulp.task('serve', () => {
   } else {
     app.use(createWebClient(uw, {
       apiUrl,
-      emoji: emojione.emoji,
       recaptcha: { key: recaptchaTestKeys.sitekey }
     }));
   }

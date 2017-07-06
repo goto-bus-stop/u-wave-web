@@ -27,7 +27,9 @@ import { closeLoginDialog } from './DialogActionCreators';
 import { setUsers } from './UserActionCreators';
 import { setVoteStats } from './VoteActionCreators';
 import { setWaitList } from './WaitlistActionCreators';
+import { loadEmoji } from './EmojiActionCreators';
 import { currentUserSelector, tokenSelector } from '../selectors/userSelectors';
+import { shouldLoadEmojiSelector } from '../selectors/configSelectors';
 
 const debug = createDebug('uwave:actions:login');
 
@@ -88,10 +90,13 @@ export function initState() {
 
   return get('/now', {
     onStart: () => ({ type: LOAD_ALL_PLAYLISTS_START }),
-    onComplete: state => (dispatch) => {
+    onComplete: state => (dispatch, getState) => {
       dispatch(syncTimestamps(beforeTime, state.time));
       dispatch(loadedState(state));
       dispatch(loadHistory());
+      if (shouldLoadEmojiSelector(getState())) {
+        dispatch(loadEmoji());
+      }
     }
   });
 }

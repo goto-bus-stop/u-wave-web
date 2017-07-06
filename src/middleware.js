@@ -21,6 +21,10 @@ export default function uwaveWebClient(uw, options = {}) {
 
   const clientRouter = router();
 
+  if (uw.emoji && !clientOptions.emoji) {
+    clientOptions.loadEmoji = true;
+  }
+
   return clientRouter
     .get('/', (req, res) => {
       fs.createReadStream(path.join(basePath, 'index.html'), 'utf8')
